@@ -13,4 +13,13 @@
 
 ## 安装方法
 1. 安装 [Tampermonkey](https://www.tampermonkey.net/) 扩展。
-2. 点击以下链接安装即可：
+2. 点击[这里](https://github.com/ABitGinger/BiLimit/raw/main/%E5%9C%A8B%E7%AB%99%E7%9C%8B%E7%82%B9%E6%9C%89%E7%94%A8%E7%9A%84-1.0.user.js)安装即可
+
+## 修改限额
+点击Tampermonkey扩展图标，打开管理面板，编辑脚本，看巨长的箭头所指位置，手动修改该处即可。
+
+---
+
+脚本采用[GPL3.0](https://www.gnu.org/licenses/gpl-3.0.zh-cn.html#license-text)协议，欢迎各位在遵守协议内容的前提下，发挥创意，扩展优化！
+
+喜欢的话记得丢个star⭐~
