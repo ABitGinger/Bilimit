@@ -37,8 +37,10 @@
     let alarm = GM_getValue('alarm', 300); // 告警时长（秒）
 
     // 如果当前URL中包含"BV"，则继续执行脚本，否则终止执行
-    if (!window.location.href.includes('BV')) {
-        return; // 如果没有"BV"字样，直接退出
+    const shouldProceedWithBVLogic = window.location.href.includes('BV');
+
+    if (!shouldProceedWithBVLogic) {
+        // 跳过屏蔽和弹窗逻辑，但继续执行后续代码
     }
 
     // 获取当前日期
@@ -259,9 +261,11 @@
 
     // 初始化功能
     function initialize() {
+    if (shouldProceedWithBVLogic) {
         disableInteractions();
         createOverlay();
         createPopup();
+    }
     }
 
     // 初始化倒计时
