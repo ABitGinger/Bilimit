@@ -1,11 +1,13 @@
 // ==UserScript==
-// @name         在B站看点有用的
+// @name         在B站看点有用的-test
 // @namespace    http://tampermonkey.net/
 // @version      1.0
 // @description  弹窗询问Bilibili内容是否有用，没用则倒计时后关闭标签页
 // @author       壹位姜
 // @match        https://www.bilibili.com/*
-// @grant        none
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @grant        GM_registerMenuCommand
 // @license      GPL-3.0
 // ==/UserScript==
 
@@ -30,8 +32,9 @@
 (function() {
     'use strict';
 
-    const total = 1800; //总限额时长（秒）
-    const alarm = 300; //告警时长（秒）<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<⚠️这里两个根据需要修改！
+    // 默认配置
+    let total = GM_getValue('total', 1800); // 总限额时长（秒）
+    let alarm = GM_getValue('alarm', 300); // 告警时长（秒）
 
     // 如果当前URL中包含"BV"，则继续执行脚本，否则终止执行
     if (!window.location.href.includes('BV')) {
@@ -42,14 +45,14 @@
     const currentDate = new Date().toISOString().split('T')[0]; // 获取YYYY-MM-DD格式的日期
 
     // 获取上次倒计时的日期，如果今天的日期和上次存储的日期不同，重置倒计时
-    let lastDate = localStorage.getItem('lastDate');
+    let lastDate = GM_getValue('lastDate');
     if (lastDate !== currentDate) {
-        localStorage.setItem('lastDate', currentDate);
-        localStorage.setItem('timeLeft', total); // 重置为 总限额时长
+        GM_setValue('lastDate', currentDate);
+        GM_setValue('timeLeft', total); // 重置为 总限额时长
     }
 
     // 倒计时剩余时间（单位：秒）
-    let timeLeft = parseInt(localStorage.getItem('timeLeft'), 10);
+    let timeLeft = GM_getValue('timeLeft', total);
 
     // 禁止网页的互动和滚动，包括键盘操作
     function disableInteractions() {
@@ -149,12 +152,38 @@
 
         // 监听用户选择
         document.getElementById('usefulOption').addEventListener('click', () => {
+            promptCategoryAndSave('有用的');
             closePopup();
         });
         document.getElementById('uselessOption').addEventListener('click', () => {
+            promptCategoryAndSave('没用的');
             startCountdown();
             closePopup();
         });
+
+        // 新增函数：弹窗询问用户并保存类别
+        function promptCategoryAndSave(option) {
+            let category;
+            while (!category) {
+                category = prompt(`你选择了"${option}"，请填写当前内容属于什么类别：`);
+                if (!category) {
+                    alert("必须填写类别！");
+                }
+            }
+
+            // 格式化时间戳为 YYYY-MM-DD-HH:mm:ss
+            const timestamp = new Date().toISOString().replace("T", "-").replace(/\..+/, "").replace(/:/g, ":");
+
+            // 获取对应分类的存储数据
+            const key = option === "有用的" ? "useful" : "useless";
+            let data = GM_getValue(key, []);
+
+            // 添加新记录，格式为 "YYYYMMDD-HHmm: 类别"
+            data.push(`${timestamp}: ${category}`);
+
+            // 将更新后的数据保存回脚本专属空间
+            GM_setValue(key, data);
+        }
     }
 
     // 关闭弹窗
@@ -185,7 +214,7 @@
 
         countdownInterval = setInterval(function() {
             timeLeft--;
-            localStorage.setItem('timeLeft', timeLeft); // 保存倒计时剩余时间
+            GM_setValue('timeLeft', timeLeft); // 保存倒计时剩余时间
 
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;
@@ -240,6 +269,41 @@
         enableInteractions();
         createCountdown();
     }
+
+    // 注册Tampermonkey菜单命令
+    GM_registerMenuCommand("查看数据", function() {
+        const usefulData = GM_getValue('useful', []);
+        const uselessData = GM_getValue('useless', []);
+        const dataToDisplay = `有用的:\n${usefulData.join('\n')}\n\n没用的:\n${uselessData.join('\n')}`;
+        alert(dataToDisplay || "暂无数据");
+    });
+
+    GM_registerMenuCommand("导出数据", function() {
+        const usefulData = GM_getValue('useful', []);
+        const uselessData = GM_getValue('useless', []);
+        const dataToExport = `有用的:\n${usefulData.join('\n')}\n\n没用的:\n${uselessData.join('\n')}`;
+        const blob = new Blob([dataToExport], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'B站数据.txt';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    GM_registerMenuCommand("修改配置", function() {
+        const newTotal = prompt("请输入总限额时长（秒）：", total);
+        const newAlarm = prompt("请输入告警时长（秒）：", alarm);
+        if (newTotal && newAlarm) {
+            total = parseInt(newTotal, 10);
+            alarm = parseInt(newAlarm, 10);
+            GM_setValue('total', total);
+            GM_setValue('alarm', alarm);
+            alert("配置已更新！");
+        } else {
+            alert("配置未更改！");
+        }
+    });
 
     // 执行初始化
     initialize();
