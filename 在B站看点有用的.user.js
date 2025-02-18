@@ -272,10 +272,91 @@
 
     // 注册Tampermonkey菜单命令
     GM_registerMenuCommand("查看数据", function() {
-        const usefulData = GM_getValue('useful', []);
-        const uselessData = GM_getValue('useless', []);
-        const dataToDisplay = `有用的:\n${usefulData.join('\n')}\n\n没用的:\n${uselessData.join('\n')}`;
+        const currentUsefulData = GM_getValue('useful', []);
+        const currentUselessData = GM_getValue('useless', []);
+        const dataToDisplay = `有用的:\n${currentUsefulData.join('\n')}\n\n没用的:\n${currentUselessData.join('\n')}`;
         alert(dataToDisplay || "暂无数据");
+    });
+
+    GM_registerMenuCommand("生成图表", function() {
+        const currentUsefulData = GM_getValue('useful', []);
+        const currentUselessData = GM_getValue('useless', []);
+
+        // Count occurrences of each category
+        const countCategories = (data) => {
+            return data.reduce((acc, entry) => {
+                const category = entry.split(': ')[1];
+                acc[category] = (acc[category] || 0) + 1;
+                return acc;
+            }, {});
+        };
+
+        const usefulCounts = countCategories(currentUsefulData);
+        const uselessCounts = countCategories(currentUselessData);
+
+        // Prepare data for charts
+        const prepareChartData = (counts) => {
+            return {
+                labels: Object.keys(counts),
+                datasets: [{
+                    label: '观看次数',
+                    data: Object.values(counts),
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+                }]
+            };
+        };
+
+        const usefulChartData = prepareChartData(usefulCounts);
+        const uselessChartData = prepareChartData(uselessCounts);
+
+        // Create a new window to display charts
+        const chartWindow = window.open('', '_blank');
+        chartWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>观看统计图表</title>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            </head>
+            <body>
+                <h2>有用的观看统计</h2>
+                <canvas id="usefulChart" width="400" height="200"></canvas>
+                <h2>没用的观看统计</h2>
+                <canvas id="uselessChart" width="400" height="200"></canvas>
+                <script>
+                    const usefulCtx = document.getElementById('usefulChart').getContext('2d');
+                    const uselessCtx = document.getElementById('uselessChart').getContext('2d');
+
+                    new Chart(usefulCtx, {
+                        type: 'bar',
+                        data: ${JSON.stringify(usefulChartData)},
+                        options: {
+                            responsive: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+
+                    new Chart(uselessCtx, {
+                        type: 'bar',
+                        data: ${JSON.stringify(uselessChartData)},
+                        options: {
+                            responsive: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                </script>
+            </body>
+            </html>
+        `);
+        chartWindow.document.close();
     });
 
     GM_registerMenuCommand("导出数据", function() {
@@ -286,9 +367,52 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'B站数据.txt';
+        a.download = 'Bilimit观看数据.txt';
         a.click();
         URL.revokeObjectURL(url);
+    });
+
+    // 新增：清空数据功能
+    GM_registerMenuCommand("清空数据", function() {
+        const confirmation = prompt("请选择要清除的数据：\n1. 上次数据\n2. 全部数据", "1");
+        if (!confirmation) return;
+
+        const currentUsefulData = GM_getValue('useful', []);
+        const currentUselessData = GM_getValue('useless', []);
+
+        if (confirmation === "2") { // 清除全部数据
+            if (confirm("警告：您即将清除全部数据，此操作不可逆！确定继续吗？")) {
+                GM_setValue('useful', []);
+                GM_setValue('useless', []);
+                alert("已清除全部数据！");
+            }
+        } else if (confirmation === "1") { // 清除上次数据
+            let lastUsefulIndex = -1;
+            let lastUselessIndex = -1;
+
+            for (let i = currentUsefulData.length - 1; i >= 0; i--) {
+                if (currentUsefulData[i].trim()) {
+                    lastUsefulIndex = i;
+                    break;
+                }
+            }
+
+            for (let i = currentUselessData.length - 1; i >= 0; i--) {
+                if (currentUselessData[i].trim()) {
+                    lastUselessIndex = i;
+                    break;
+                }
+            }
+
+            if (lastUsefulIndex !== -1) currentUsefulData.splice(lastUsefulIndex, 1);
+            if (lastUselessIndex !== -1) currentUselessData.splice(lastUselessIndex, 1);
+
+            GM_setValue('useful', currentUsefulData);
+            GM_setValue('useless', currentUselessData);
+            alert("已清除上次数据！");
+        } else {
+            alert("无效的选择！");
+        }
     });
 
     GM_registerMenuCommand("修改配置", function() {
