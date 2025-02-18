@@ -323,6 +323,10 @@
                 <canvas id="usefulChart" width="400" height="200"></canvas>
                 <h2>没用的观看统计</h2>
                 <canvas id="uselessChart" width="400" height="200"></canvas>
+                <h2>有用的观看占比</h2>
+                <canvas id="usefulPieChart" width="400" height="200"></canvas>
+                <h2>没用的观看占比</h2>
+                <canvas id="uselessPieChart" width="400" height="200"></canvas>
                 <script>
                     const usefulCtx = document.getElementById('usefulChart').getContext('2d');
                     const uselessCtx = document.getElementById('uselessChart').getContext('2d');
@@ -350,6 +354,26 @@
                                     beginAtZero: true
                                 }
                             }
+                        }
+                    });
+
+                    // 添加有用的饼图
+                    const usefulPieCtx = document.getElementById('usefulPieChart').getContext('2d');
+                    new Chart(usefulPieCtx, {
+                        type: 'pie',
+                        data: ${JSON.stringify(usefulChartData)},
+                        options: {
+                            responsive: false,
+                        }
+                    });
+
+                    // 添加没用的饼图
+                    const uselessPieCtx = document.getElementById('uselessPieChart').getContext('2d');
+                    new Chart(uselessPieCtx, {
+                        type: 'pie',
+                        data: ${JSON.stringify(uselessChartData)},
+                        options: {
+                            responsive: false,
                         }
                     });
                 </script>
