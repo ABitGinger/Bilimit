@@ -34,7 +34,7 @@
     'use strict';
 
     // 默认配置
-    let total = GM_getValue('total', 1800); // 总限额时长（秒）
+    let total = GM_getValue('total', 3600); // 总限额时长（秒）
     let alarm = GM_getValue('alarm', 300); // 告警时长（秒）
 
     // 如果当前URL中包含"BV"，则继续执行脚本，否则终止执行
