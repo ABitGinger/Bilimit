@@ -5,6 +5,7 @@
 // @description  弹窗询问Bilibili内容是否有用，没用则倒计时后关闭标签页；统计观看内容次数，以供用户自我反思
 // @author       壹位姜
 // @match        https://www.bilibili.com/*
+// @icon         https://github.com/ABitGinger/BiLimit/raw/main/icon.ico
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_registerMenuCommand
@@ -401,7 +402,7 @@
     });
 
     // 新增：清空数据功能
-    GM_registerMenuCommand("清空数据", function() {
+    GM_registerMenuCommand("清除数据", function() {
         const confirmation = prompt("请选择要清除的数据：\n1. 上次数据\n2. 全部数据", "1");
         if (!confirmation) return;
 
@@ -415,29 +416,42 @@
                 alert("已清除全部数据！");
             }
         } else if (confirmation === "1") { // 清除上次数据
-            let lastUsefulIndex = -1;
-            let lastUselessIndex = -1;
+            // 检查是否有数据可清除
+            const allData = [...currentUsefulData, ...currentUselessData];
+            if (allData.length === 0) {
+                alert("没有数据可清除！");
+                return;
+            }
 
-            for (let i = currentUsefulData.length - 1; i >= 0; i--) {
-                if (currentUsefulData[i].trim()) {
-                    lastUsefulIndex = i;
-                    break;
+            // 合并所有数据并找到时间最晚的一条记录
+            let latestRecord = null;
+            let latestTime = null;
+
+            for (const record of allData) {
+                const [timestamp] = record.split(': ');
+                if (!latestTime || timestamp > latestTime) {
+                    latestTime = timestamp;
+                    latestRecord = record;
                 }
             }
 
-            for (let i = currentUselessData.length - 1; i >= 0; i--) {
-                if (currentUselessData[i].trim()) {
-                    lastUselessIndex = i;
-                    break;
+            // 从原始数据中删除时间最晚的记录，并告知用户清除的具体内容
+            if (latestRecord) {
+                const usefulIndex = currentUsefulData.indexOf(latestRecord);
+                if (usefulIndex !== -1) {
+                    currentUsefulData.splice(usefulIndex, 1);
+                    alert(`已清除上次数据：\n${latestRecord}`);
+                } else {
+                    const uselessIndex = currentUselessData.indexOf(latestRecord);
+                    if (uselessIndex !== -1) {
+                        currentUselessData.splice(uselessIndex, 1);
+                        alert(`已清除上次数据：\n${latestRecord}`);
+                    }
                 }
             }
-
-            if (lastUsefulIndex !== -1) currentUsefulData.splice(lastUsefulIndex, 1);
-            if (lastUselessIndex !== -1) currentUselessData.splice(lastUselessIndex, 1);
 
             GM_setValue('useful', currentUsefulData);
             GM_setValue('useless', currentUselessData);
-            alert("已清除上次数据！");
         } else {
             alert("无效的选择！");
         }
