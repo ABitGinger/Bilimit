@@ -30,7 +30,7 @@
  * Author's website: abitginger.top
  */
 
-(function() {
+(function () {
     'use strict';
 
     // 默认配置
@@ -215,7 +215,7 @@
         countdownWindow.innerText = `剩余时间: ${String(Math.floor(timeLeft / 60)).padStart(2, '0')}:${String(timeLeft % 60).padStart(2, '0')}`;
         document.body.appendChild(countdownWindow);
 
-        countdownInterval = setInterval(function() {
+        countdownInterval = setInterval(function () {
             timeLeft--;
             GM_setValue('timeLeft', timeLeft); // 保存倒计时剩余时间
 
@@ -262,11 +262,11 @@
 
     // 初始化功能
     function initialize() {
-    if (shouldProceedWithBVLogic) {
-        disableInteractions();
-        createOverlay();
-        createPopup();
-    }
+        if (shouldProceedWithBVLogic) {
+            disableInteractions();
+            createOverlay();
+            createPopup();
+        }
     }
 
     // 初始化倒计时
@@ -276,14 +276,14 @@
     }
 
     // 注册Tampermonkey菜单命令
-    GM_registerMenuCommand("查看数据", function() {
+    GM_registerMenuCommand("查看数据", function () {
         const currentUsefulData = GM_getValue('useful', []);
         const currentUselessData = GM_getValue('useless', []);
         const dataToDisplay = `有用的:\n${currentUsefulData.join('\n')}\n\n没用的:\n${currentUselessData.join('\n')}`;
         alert(dataToDisplay || "暂无数据");
     });
 
-    GM_registerMenuCommand("生成图表", function() {
+    GM_registerMenuCommand("生成图表", function () {
         const currentUsefulData = GM_getValue('useful', []);
         const currentUselessData = GM_getValue('useless', []);
 
@@ -388,7 +388,7 @@
         chartWindow.document.close();
     });
 
-    GM_registerMenuCommand("导出数据", function() {
+    GM_registerMenuCommand("导出数据", function () {
         const usefulData = GM_getValue('useful', []);
         const uselessData = GM_getValue('useless', []);
         const dataToExport = `有用的:\n${usefulData.join('\n')}\n\n没用的:\n${uselessData.join('\n')}`;
@@ -396,13 +396,16 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'Bilimit观看数据.txt';
+
+        // 生成时间戳，格式为 YYYY-MM-DD-HH:mm:ss
+        const timestamp = new Date().toISOString().replace(/T/, '-').replace(/\..+/, '').replace(/:/g, ':');
+        a.download = `Bilimit观看数据_${timestamp}.txt`;
         a.click();
         URL.revokeObjectURL(url);
     });
 
     // 新增：清空数据功能
-    GM_registerMenuCommand("清除数据", function() {
+    GM_registerMenuCommand("清除数据", function () {
         const confirmation = prompt("请选择要清除的数据：\n1. 上次数据\n2. 全部数据", "1");
         if (!confirmation) return;
 
@@ -457,7 +460,7 @@
         }
     });
 
-    GM_registerMenuCommand("修改配置", function() {
+    GM_registerMenuCommand("修改配置", function () {
         const newTotal = prompt("请输入总限额时长（秒）：", total);
         const newAlarm = prompt("请输入告警时长（秒）：", alarm);
         if (newTotal && newAlarm) {
