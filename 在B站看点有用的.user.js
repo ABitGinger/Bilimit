@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         在B站看点有用的
 // @namespace    http://tampermonkey.net/
-// @version      1.1-pre3
+// @version      1.1-pre4
 // @description  弹窗询问Bilibili内容是否有用，没用则倒计时后关闭标签页；统计观看内容次数，以供用户自我反思
 // @author       壹位姜
 // @match        https://www.bilibili.com/*
@@ -174,6 +174,11 @@
                 }
             }
 
+            // 如果用户输入 'N/A'，则不进行记录
+            if (category.toUpperCase() === 'N/A') {
+                return;
+            }
+
             // 格式化时间戳为 YYYY-MM-DD-HH:mm:ss
             const timestamp = new Date().toISOString().replace("T", "-").replace(/\..+/, "").replace(/:/g, ":");
 
@@ -256,20 +261,20 @@
     }
 
     // 关闭当前标签页
-function closeTab() {
-    if (typeof GM_closeTab === 'function') {
-        GM_closeTab();
-    } else {
-        try {
-            window.close();
-        } catch (e) {
-            console.error('尝试使用window.close()关闭标签页失败:', e);
-        }
-        if (!window.closed) {
-            alert('自动关闭标签页失败。请手动关闭此标签页，或检查浏览器设置以允许脚本关闭窗口。');
+    function closeTab() {
+        if (typeof GM_closeTab === 'function') {
+            GM_closeTab();
+        } else {
+            try {
+                window.close();
+            } catch (e) {
+                console.error('尝试使用window.close()关闭标签页失败:', e);
+            }
+            if (!window.closed) {
+                alert('自动关闭标签页失败。请手动关闭此标签页，或检查浏览器设置以允许脚本关闭窗口。');
+            }
         }
     }
-}
 
     // 初始化功能
     function initialize() {
