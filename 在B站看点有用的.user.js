@@ -257,7 +257,11 @@
 
     // 关闭当前标签页
     function closeTab() {
-        window.close();
+        if (typeof GM_closeTab === 'function') {
+            GM_closeTab();
+        } else {
+            alert('无法自动关闭标签页，请手动关闭。');
+        }
     }
 
     // 初始化功能
