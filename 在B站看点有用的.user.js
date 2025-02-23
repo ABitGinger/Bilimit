@@ -436,7 +436,7 @@ function closeTab() {
     // 导入数据功能
     GM_registerMenuCommand("导入数据", function () {
         const input = prompt("请选择导入模式：\n1. 追加到现有数据\n2. 覆盖现有数据", "1");
-        if (!input) return;
+        // if (!input) return;
 
         const mode = parseInt(input, 10);
         if (![1, 2].includes(mode)) {
