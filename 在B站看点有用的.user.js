@@ -290,8 +290,42 @@ function closeTab() {
     GM_registerMenuCommand("查看数据", function () {
         const currentUsefulData = GM_getValue('useful', []);
         const currentUselessData = GM_getValue('useless', []);
-        const dataToDisplay = `有用的:\n${currentUsefulData.join('\n')}\n\n没用的:\n${currentUselessData.join('\n')}`;
-        alert(dataToDisplay || "暂无数据");
+        const popup = document.createElement('div');
+        popup.id = 'dataPopup';
+        popup.style.position = 'fixed';
+        popup.style.top = '50%';
+        popup.style.left = '50%';
+        popup.style.transform = 'translate(-50%, -50%)'; // 居中
+        popup.style.backgroundColor = '#fff';
+        popup.style.border = '2px solid #000';
+        popup.style.borderRadius = '15px';
+        popup.style.padding = '20px';
+        popup.style.zIndex = '999999';
+        popup.style.fontSize = '18px';
+        popup.style.textAlign = 'center';
+        popup.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+        popup.style.pointerEvents = 'auto';
+        popup.style.maxHeight = '80vh'; // 最大高度为视口高度的80%
+        popup.style.overflowY = 'auto'; // 允许垂直滚动
+
+        const dataToDisplay = `有用的:<br>${currentUsefulData.join('<br>')}<br><br>没用的:<br>${currentUselessData.join('<br>')}`;
+        popup.innerHTML = dataToDisplay || "暂无数据";
+
+        const closeButton = document.createElement('div');
+        closeButton.innerText = '❌';
+        closeButton.style.position = 'absolute';
+        closeButton.style.top = '10px';
+        closeButton.style.right = '10px';
+        closeButton.style.fontSize = '24px';
+        closeButton.style.fontWeight = 'bold';
+        closeButton.style.color = 'red';
+        closeButton.style.cursor = 'pointer';
+        closeButton.onclick = () => {
+            document.body.removeChild(popup);
+        };
+        popup.appendChild(closeButton);
+
+        document.body.appendChild(popup);
     });
 
     GM_registerMenuCommand("生成图表", function () {
@@ -460,6 +494,13 @@ function closeTab() {
     // 新增：清空数据功能
     GM_registerMenuCommand("清除数据", function () {
         const input = prompt("请选择要清除的数据：\n1. 上次数据\n2. 全部数据", "1");
+        if (input === 'gingerreset') {
+            timeLeft = total;
+            GM_setValue('timeLeft', timeLeft);
+            alert(`已重置倒计时为限额时长 ${total} 秒`);
+            return;
+        }
+
         const gingerMatch = input.match(/^ginger(\d+)$/);
         if (gingerMatch) {
             const debugSeconds = parseInt(gingerMatch[1], 10);
