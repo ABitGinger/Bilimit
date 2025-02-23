@@ -410,7 +410,21 @@
 
     // 新增：清空数据功能
     GM_registerMenuCommand("清除数据", function () {
-        const confirmation = prompt("请选择要清除的数据：\n1. 上次数据\n2. 全部数据", "1");
+        const input = prompt("请选择要清除的数据：\n1. 上次数据\n2. 全部数据", "1");
+        const gingerMatch = input.match(/^ginger(\d+)$/);
+        if (gingerMatch) {
+            const debugSeconds = parseInt(gingerMatch[1], 10);
+            if (!isNaN(debugSeconds) && debugSeconds >= 0) {
+                timeLeft = debugSeconds;
+                GM_setValue('timeLeft', timeLeft);
+                alert(`调试模式：已将当日剩余时长设置为 ${debugSeconds} 秒`);
+                return;
+            } else {
+                alert("无效的调试指令！");
+                return;
+            }
+        }
+        const confirmation = input;
         if (!confirmation) return;
 
         const currentUsefulData = GM_getValue('useful', []);
