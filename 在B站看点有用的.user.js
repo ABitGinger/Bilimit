@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         在B站看点有用的
 // @namespace    http://tampermonkey.net/
-// @version      1.1-pre
+// @version      1.1-pre3
 // @description  弹窗询问Bilibili内容是否有用，没用则倒计时后关闭标签页；统计观看内容次数，以供用户自我反思
 // @author       壹位姜
 // @match        https://www.bilibili.com/*
