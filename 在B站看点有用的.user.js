@@ -256,13 +256,20 @@
     }
 
     // 关闭当前标签页
-    function closeTab() {
-        if (typeof GM_closeTab === 'function') {
-            GM_closeTab();
-        } else {
-            alert('无法自动关闭标签页，请手动关闭。');
+function closeTab() {
+    if (typeof GM_closeTab === 'function') {
+        GM_closeTab();
+    } else {
+        try {
+            window.close();
+        } catch (e) {
+            console.error('尝试使用window.close()关闭标签页失败:', e);
+        }
+        if (!window.closed) {
+            alert('自动关闭标签页失败。请手动关闭此标签页，或检查浏览器设置以允许脚本关闭窗口。');
         }
     }
+}
 
     // 初始化功能
     function initialize() {
