@@ -399,6 +399,48 @@ function closeTab() {
         chartWindow.document.close();
     });
 
+    // 导入数据功能
+    GM_registerMenuCommand("导入数据", function () {
+        const input = prompt("请选择导入模式：\n1. 追加到现有数据\n2. 覆盖现有数据", "1");
+        if (!input) return;
+
+        const mode = parseInt(input, 10);
+        if (![1, 2].includes(mode)) {
+            alert("无效的选择！");
+            return;
+        }
+
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.txt';
+        fileInput.onchange = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                const [usefulData, uselessData] = content.split('\n\n没用的:\n');
+
+                const parseData = (data) => data.split('\n').filter(Boolean);
+
+                if (mode === 2) { // 覆盖模式
+                    GM_setValue('useful', parseData(usefulData.replace('有用的:\n', '')));
+                    GM_setValue('useless', parseData(uselessData));
+                    alert("数据已覆盖！");
+                } else { // 追加模式
+                    const currentUseful = GM_getValue('useful', []);
+                    const currentUseless = GM_getValue('useless', []);
+                    GM_setValue('useful', [...currentUseful, ...parseData(usefulData.replace('有用的:\n', ''))]);
+                    GM_setValue('useless', [...currentUseless, ...parseData(uselessData)]);
+                    alert("数据已追加！");
+                }
+            };
+            reader.readAsText(file);
+        };
+        fileInput.click();
+    });
+
     GM_registerMenuCommand("导出数据", function () {
         const usefulData = GM_getValue('useful', []);
         const uselessData = GM_getValue('useless', []);
