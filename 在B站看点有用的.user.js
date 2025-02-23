@@ -337,6 +337,21 @@
         const currentUsefulData = GM_getValue('useful', []);
         const currentUselessData = GM_getValue('useless', []);
 
+        // 获取过去七天的数据
+        const getLastSevenDaysData = (data) => {
+            const today = new Date();
+            const sevenDaysAgo = new Date(today);
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+            return data.filter(entry => {
+                const entryDate = new Date(entry.split(': ')[0].replace(/-/g, '/'));
+                return entryDate >= sevenDaysAgo && entryDate <= today;
+            });
+        };
+
+        const lastSevenDaysUsefulData = getLastSevenDaysData(currentUsefulData);
+        const lastSevenDaysUselessData = getLastSevenDaysData(currentUselessData);
+
         // Count occurrences of each category
         const countCategories = (data) => {
             return data.reduce((acc, entry) => {
@@ -348,6 +363,9 @@
 
         const usefulCounts = countCategories(currentUsefulData);
         const uselessCounts = countCategories(currentUselessData);
+
+        const lastSevenDaysUsefulCounts = countCategories(lastSevenDaysUsefulData);
+        const lastSevenDaysUselessCounts = countCategories(lastSevenDaysUselessData);
 
         // Prepare data for charts
         const prepareChartData = (counts) => {
@@ -364,77 +382,171 @@
         const usefulChartData = prepareChartData(usefulCounts);
         const uselessChartData = prepareChartData(uselessCounts);
 
+        const lastSevenDaysUsefulChartData = prepareChartData(lastSevenDaysUsefulCounts);
+        const lastSevenDaysUselessChartData = prepareChartData(lastSevenDaysUselessCounts);
+
         // Create a new window to display charts
         const chartWindow = window.open('', '_blank');
         chartWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>观看统计图表</title>
-                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-            </head>
-            <body>
-                <h2>有用的观看统计</h2>
-                <canvas id="usefulChart" width="400" height="200"></canvas>
-                <h2>没用的观看统计</h2>
-                <canvas id="uselessChart" width="400" height="200"></canvas>
-                <h2>有用的观看占比</h2>
-                <canvas id="usefulPieChart" width="400" height="200"></canvas>
-                <h2>没用的观看占比</h2>
-                <canvas id="uselessPieChart" width="400" height="200"></canvas>
-                <script>
-                    const usefulCtx = document.getElementById('usefulChart').getContext('2d');
-                    const uselessCtx = document.getElementById('uselessChart').getContext('2d');
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>观看统计图表</title>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <style>
+                .chart-container {
+                    display: flex;
+                    justify-content: space-around;
+                    align-items: center;
+                    flex-wrap: wrap;
+                }
+                canvas {
+                    margin: 20px;
+                }
+            </style>
+        </head>
+        <body>
+<div class="chart-container">
+    <div class="column">
+        <div>
+            <h2>有用的观看统计</h2>
+            <canvas id="usefulChart" width="400" height="200"></canvas>
+        </div>
+        <div>
+            <h2>没用的观看统计</h2>
+            <canvas id="uselessChart" width="400" height="200"></canvas>
+        </div>
+        <div>
+            <h2>有用的观看占比</h2>
+            <canvas id="usefulPieChart" width="400" height="200"></canvas>
+        </div>
+        <div>
+            <h2>没用的观看占比</h2>
+            <canvas id="uselessPieChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+    <div class="column">
+        <div>
+            <h2>过去七天有用的观看统计</h2>
+            <canvas id="lastSevenDaysUsefulChart" width="400" height="200"></canvas>
+        </div>
+        <div>
+            <h2>过去七天没用的观看统计</h2>
+            <canvas id="lastSevenDaysUselessChart" width="400" height="200"></canvas>
+        </div>
+        <div>
+            <h2>过去七天有用的观看占比</h2>
+            <canvas id="lastSevenDaysUsefulPieChart" width="400" height="200"></canvas>
+        </div>
+        <div>
+            <h2>过去七天没用的观看占比</h2>
+            <canvas id="lastSevenDaysUselessPieChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+</div>
+            <script>
+                const usefulCtx = document.getElementById('usefulChart').getContext('2d');
+                const uselessCtx = document.getElementById('uselessChart').getContext('2d');
+                const lastSevenDaysUsefulCtx = document.getElementById('lastSevenDaysUsefulChart').getContext('2d');
+                const lastSevenDaysUselessCtx = document.getElementById('lastSevenDaysUselessChart').getContext('2d');
 
-                    new Chart(usefulCtx, {
-                        type: 'bar',
-                        data: ${JSON.stringify(usefulChartData)},
-                        options: {
-                            responsive: false,
-                            scales: {
-                                y: {
-                                    beginAtZero: true
-                                }
+                new Chart(usefulCtx, {
+                    type: 'bar',
+                    data: ${JSON.stringify(usefulChartData)},
+                    options: {
+                        responsive: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
                             }
                         }
-                    });
+                    }
+                });
 
-                    new Chart(uselessCtx, {
-                        type: 'bar',
-                        data: ${JSON.stringify(uselessChartData)},
-                        options: {
-                            responsive: false,
-                            scales: {
-                                y: {
-                                    beginAtZero: true
-                                }
+                new Chart(uselessCtx, {
+                    type: 'bar',
+                    data: ${JSON.stringify(uselessChartData)},
+                    options: {
+                        responsive: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
                             }
                         }
-                    });
+                    }
+                });
 
-                    // 添加有用的饼图
-                    const usefulPieCtx = document.getElementById('usefulPieChart').getContext('2d');
-                    new Chart(usefulPieCtx, {
-                        type: 'pie',
-                        data: ${JSON.stringify(usefulChartData)},
-                        options: {
-                            responsive: false,
-                        }
-                    });
+                // 添加有用的饼图
+                const usefulPieCtx = document.getElementById('usefulPieChart').getContext('2d');
+                new Chart(usefulPieCtx, {
+                    type: 'pie',
+                    data: ${JSON.stringify(usefulChartData)},
+                    options: {
+                        responsive: false,
+                    }
+                });
 
-                    // 添加没用的饼图
-                    const uselessPieCtx = document.getElementById('uselessPieChart').getContext('2d');
-                    new Chart(uselessPieCtx, {
-                        type: 'pie',
-                        data: ${JSON.stringify(uselessChartData)},
-                        options: {
-                            responsive: false,
+                // 添加没用的饼图
+                const uselessPieCtx = document.getElementById('uselessPieChart').getContext('2d');
+                new Chart(uselessPieCtx, {
+                    type: 'pie',
+                    data: ${JSON.stringify(uselessChartData)},
+                    options: {
+                        responsive: false,
+                    }
+                });
+
+                // 添加过去七天有用的柱状图
+                new Chart(lastSevenDaysUsefulCtx, {
+                    type: 'bar',
+                    data: ${JSON.stringify(lastSevenDaysUsefulChartData)},
+                    options: {
+                        responsive: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
                         }
-                    });
-                </script>
-            </body>
-            </html>
-        `);
+                    }
+                });
+
+                // 添加过去七天没用的柱状图
+                new Chart(lastSevenDaysUselessCtx, {
+                    type: 'bar',
+                    data: ${JSON.stringify(lastSevenDaysUselessChartData)},
+                    options: {
+                        responsive: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                // 添加过去七天有用的饼图
+                const lastSevenDaysUsefulPieCtx = document.getElementById('lastSevenDaysUsefulPieChart').getContext('2d');
+                new Chart(lastSevenDaysUsefulPieCtx, {
+                    type: 'pie',
+                    data: ${JSON.stringify(lastSevenDaysUsefulChartData)},
+                    options: {
+                        responsive: false,
+                    }
+                });
+
+                // 添加过去七天没用的饼图
+                const lastSevenDaysUselessPieCtx = document.getElementById('lastSevenDaysUselessPieChart').getContext('2d');
+                new Chart(lastSevenDaysUselessPieCtx, {
+                    type: 'pie',
+                    data: ${JSON.stringify(lastSevenDaysUselessChartData)},
+                    options: {
+                        responsive: false,
+                    }
+                });
+            </script>
+        </body>
+        </html>
+    `);
         chartWindow.document.close();
     });
 
