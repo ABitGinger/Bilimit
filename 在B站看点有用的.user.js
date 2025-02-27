@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         在B站看点有用的
 // @namespace    http://tampermonkey.net/
-// @version      1.1-pre4
+// @version      1.1
 // @description  弹窗询问Bilibili内容是否有用，没用则倒计时后关闭标签页；统计观看内容次数，以供用户自我反思
 // @author       壹位姜
 // @match        https://www.bilibili.com/*
@@ -174,7 +174,7 @@
                 }
             }
 
-            // 如果用户输入 'N/A'，则不进行记录
+            // 调试功能：如果用户输入 'N/A'，则不进行记录
             if (category.toUpperCase() === 'N/A') {
                 return;
             }
@@ -611,26 +611,30 @@
     // 新增：清空数据功能
     GM_registerMenuCommand("清除数据", function () {
         const input = prompt("请选择要清除的数据：\n1. 上次数据\n2. 全部数据", "1");
-        if (input === 'gingerreset') {
-            timeLeft = total;
-            GM_setValue('timeLeft', timeLeft);
-            alert(`已重置倒计时为限额时长 ${total} 秒`);
-            return;
-        }
+        
+        // 调试功能：重置时长
+        // if (input === 'gingerreset') {
+        //     timeLeft = total;
+        //     GM_setValue('timeLeft', timeLeft);
+        //     alert(`已重置倒计时为限额时长 ${total} 秒`);
+        //     return;
+        // }
 
-        const gingerMatch = input.match(/^ginger(\d+)$/);
-        if (gingerMatch) {
-            const debugSeconds = parseInt(gingerMatch[1], 10);
-            if (!isNaN(debugSeconds) && debugSeconds >= 0) {
-                timeLeft = debugSeconds;
-                GM_setValue('timeLeft', timeLeft);
-                alert(`调试模式：已将当日剩余时长设置为 ${debugSeconds} 秒`);
-                return;
-            } else {
-                alert("无效的调试指令！");
-                return;
-            }
-        }
+        // 调试功能：设置当日剩余时长
+        // const gingerMatch = input.match(/^ginger(\d+)$/);
+        // if (gingerMatch) {
+        //     const debugSeconds = parseInt(gingerMatch[1], 10);
+        //     if (!isNaN(debugSeconds) && debugSeconds >= 0) {
+        //         timeLeft = debugSeconds;
+        //         GM_setValue('timeLeft', timeLeft);
+        //         alert(`已将当日剩余时长设置为 ${debugSeconds} 秒`);
+        //         return;
+        //     } else {
+        //         alert("无效的调试指令！");
+        //         return;
+        //     }
+        // }
+
         const confirmation = input;
         if (!confirmation) return;
 
